@@ -1,0 +1,41 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/03/a/PC.hdl
+
+/**
+ * A 16-bit counter with load and reset control bits.
+ * if      (reset[t] == 1) out[t+1] = 0
+ * else if (load[t] == 1)  out[t+1] = in[t]
+ * else if (inc[t] == 1)   out[t+1] = out[t] + 1  (integer addition)
+ * else                    out[t+1] = out[t]
+ */
+
+CHIP PC {
+    IN in[16],load,inc,reset;
+    OUT out[16];
+
+     // We need a 3 Mux (in order to satisfy for each load, inc and reset)
+
+    PARTS:
+    Register(in=eventualResult, load=true, out=out, out=value);
+    // we know that the output is dependent on mux combinations.
+    // also i need to create an incrementor dependant on the Register
+    // i said true, so then the out = out[t]
+    Inc16(in=value, out=increased);
+    // this will take the value of the fabricated Resgister, and return an incremented value
+    // the out will be used in the mux 
+
+    Mux16(a=value, b=increased, sel=inc, out=incremental); 
+    // if inch == 0, output the unchanged value
+    // else, out the updated value, where it will track back to the resgister's out (every tick-tock)
+
+    Mux16(a=incremental, b=in, sel=load, out=savedOrload);
+    // if the load == 0, output the incremental value
+    // else out == the value manual typed in the in[16]
+
+    Mux16(a=savedOrload, b=false, sel=reset, out=eventualResult);
+    // I know that false is == 0, so therefore if reset == 1, then return a false value
+    // if reset is == 0, then we return the saved result, which will inputted anded update the register.
+
+}
